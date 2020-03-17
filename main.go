@@ -6,12 +6,13 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/mysql"
+	"database/sql"
+
+	_ "github.com/go-sql-driver/mysql"
 	"github.com/joho/godotenv"
 )
 
-var db *gorm.DB //database
+var db *sql.DB
 
 func init() {
 	// loads values from .env into the system
@@ -19,23 +20,44 @@ func init() {
 		log.Print("No .env file found")
 	}
 
+	connectDB()
+
+	// username := os.Getenv("DB_USER")
+	// password := os.Getenv("DB_PASS")
+	// dbName := os.Getenv("DB_NAME")
+	// dbHost := os.Getenv("DB_HOST")
+
+	// // string example to connect to a mysql database:
+	// // user:password@(localhost)/dbname?charset=utf8&parseTime=True&loc=Local
+	// dbURI := fmt.Sprintf("%s:%s@(%s)/%s?charset=utf8&parseTime=True&loc=Local", username, password, dbHost, dbName) //Build connection string
+
+	// conn, err := gorm.Open("mysql", dbURI)
+	// if err != nil {
+	// 	fmt.Print(err)
+	// } else {
+	// 	fmt.Println("Connection to database established")
+	// }
+
+	// db = conn
+}
+
+func connectDB() {
 	username := os.Getenv("DB_USER")
 	password := os.Getenv("DB_PASS")
 	dbName := os.Getenv("DB_NAME")
-	dbHost := os.Getenv("DB_HOST")
+	// dbHost := os.Getenv("DB_HOST")
 
-	// string example to connect to a mysql database:
-	// user:password@(localhost)/dbname?charset=utf8&parseTime=True&loc=Local
-	dbURI := fmt.Sprintf("%s:%s@(%s)/%s?charset=utf8&parseTime=True&loc=Local", username, password, dbHost, dbName) //Build connection string
+	dbURI := fmt.Sprintf("%s:%s@/%s", username, password, dbName) //Build connection string
 
-	conn, err := gorm.Open("mysql", dbURI)
+	db, err := sql.Open("mysql", dbURI)
 	if err != nil {
-		fmt.Print(err)
-	} else {
-		fmt.Println("Connection to database established")
+		panic(err)
 	}
-
-	db = conn
+	err = db.Ping()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("Database successfully connected!")
 }
 
 func front(w http.ResponseWriter, req *http.Request) {
